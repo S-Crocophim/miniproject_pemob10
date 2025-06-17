@@ -24,7 +24,9 @@ class _CCTVViewScreenState extends State<CCTVViewScreen> {
   void initState() {
     super.initState();
     // URL video dummy. Ganti dengan URL RTSP atau HLS sesungguhnya.
-    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.cctvUrl));
+    _controller = VideoPlayerController.networkUrl(
+      Uri.parse("CCTV_ColdRoom.mp4"),
+    );
 
     _initializeVideoPlayerFuture = _controller.initialize().then((_) {
       // Memulai video secara otomatis dan mengulanginya
