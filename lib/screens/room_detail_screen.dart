@@ -1,4 +1,7 @@
 // lib/screens/room_detail_screen.dart
+import 'package:intl/intl.dart';
+
+import '/models/change_log.dart';
 import '/models/cold_room.dart';
 import '/providers/theme_provider.dart';
 import '/screens/cctv_view_screen.dart';
@@ -20,13 +23,31 @@ class RoomDetailScreen extends StatefulWidget {
 
 class _RoomDetailScreenState extends State<RoomDetailScreen> {
   bool _notificationsEnabled = true;
+  List<ChangeLog> _changeLogs = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _changeLogs = [
+      ChangeLog(
+        employeeId: 'EMP-112',
+        timestamp: DateTime.now().subtract(const Duration(hours: 2)),
+        description: 'Slot A3 changed to Occupied.',
+      ),
+      ChangeLog(
+        employeeId: 'EMP-078',
+        timestamp: DateTime.now().subtract(const Duration(hours: 8)),
+        description: 'Slot B2 changed to Available.',
+      ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     final isDarkMode = themeProvider.isDarkMode;
     final textColor = isDarkMode ? AppTheme.darkTextColor : AppTheme.lightTextColor;
-    
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -41,43 +62,13 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                GlassmorphicContainer(
-                  padding: const EdgeInsets.all(20),
-                  margin: EdgeInsets.zero,
-                  child: Column(
-                    children: [
-                      Text("Current Conditions", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
-                      const SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _buildMetricItem('Temp', '${widget.room.temperature}°C', Icons.thermostat, isDarkMode ? AppTheme.darkWarningColor : AppTheme.lightWarningColor, textColor),
-                          _buildMetricItem('Humidity', '${widget.room.humidity}%', Icons.water_drop, isDarkMode ? AppTheme.darkSecondaryColor : AppTheme.lightSecondaryColor, textColor),
-                          _buildMetricItem('Door', widget.room.isDoorOpen ? 'Open' : 'Closed', Icons.door_front_door, isDarkMode ? AppTheme.darkStatusAlert : AppTheme.lightStatusAlert, textColor),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                _buildChartCard(isDarkMode, textColor),
+                _buildMetricSection(textColor),
                 const SizedBox(height: 16),
                 _buildActionButtons(context),
                 const SizedBox(height: 16),
-                GlassmorphicContainer(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                  margin: EdgeInsets.zero,
-                  child: SwitchListTile(
-                    title: Text('Enable Notifications', style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
-                    subtitle: Text('Receive alerts for this room', style: TextStyle(color: textColor.withOpacity(0.7))),
-                    value: _notificationsEnabled,
-                    onChanged: (value) {
-                      setState(() => _notificationsEnabled = value);
-                    },
-                    activeColor: isDarkMode ? AppTheme.darkPrimaryColor : AppTheme.lightPrimaryColor,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
+                _buildNotificationSwitch(isDarkMode, textColor),
+                const SizedBox(height: 24),
+                _buildChangeLogSection(textColor),
               ],
             ),
           ),
@@ -86,36 +77,102 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
     );
   }
 
-  Widget _buildMetricItem(String label, String value, IconData icon, Color color, Color textColor) {
-    return Column(
-      children: [
-        CircleAvatar(
-          radius: 28,
-          backgroundColor: color.withOpacity(0.9),
-          child: Icon(icon, size: 28, color: Colors.white),
-        ),
-        const SizedBox(height: 8),
-        Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textColor)),
-        Text(label, style: TextStyle(fontSize: 12, color: textColor.withOpacity(0.7))),
-      ],
+  Widget _buildMetricSection(Color textColor) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    return GlassmorphicContainer(
+      padding: const EdgeInsets.all(20),
+      margin: EdgeInsets.zero,
+      child: Column(
+        children: [
+          Text("Current Conditions", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildMetricItem('Temp', '${widget.room.temperature}°C', Icons.thermostat, isDarkMode ? AppTheme.darkWarningColor : AppTheme.lightWarningColor, textColor),
+              _buildMetricItem('Humidity', '${widget.room.humidity}%', Icons.water_drop, isDarkMode ? AppTheme.darkSecondaryColor : AppTheme.lightSecondaryColor, textColor),
+              _buildMetricItem('Door', widget.room.isDoorOpen ? 'Open' : 'Closed', Icons.door_front_door, isDarkMode ? AppTheme.darkStatusAlert : AppTheme.lightStatusAlert, textColor),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(color: Colors.white24),
+          _buildChartCard(isDarkMode, textColor),
+        ],
+      ),
     );
   }
 
-  Widget _buildChartCard(bool isDarkMode, Color textColor) {
+  Widget _buildChangeLogSection(Color textColor) {
     return GlassmorphicContainer(
+      padding: const EdgeInsets.all(20),
       margin: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Temperature Trend (Last 24h)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textColor)),
-          const SizedBox(height: 20),
-          SizedBox(
-            height: 150,
-            child: LineChart(_buildTemperatureChartData(isDarkMode)),
+          Row(
+            children: [
+              Icon(Icons.history, color: textColor, size: 22),
+              const SizedBox(width: 8),
+              Text(
+                "Slot Change History",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
+              ),
+            ],
           ),
+          const SizedBox(height: 12),
+          if (_changeLogs.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                child: Text(
+                  "No recent changes.",
+                  style: TextStyle(color: textColor.withOpacity(0.7), fontStyle: FontStyle.italic),
+                ),
+              ),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _changeLogs.length,
+              itemBuilder: (context, index) {
+                final log = _changeLogs[index];
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: CircleAvatar(
+                    backgroundColor: Theme.of(context).colorScheme.secondary.withOpacity(0.2),
+                    child: Icon(Icons.person, color: Theme.of(context).colorScheme.secondary),
+                  ),
+                  title: Text(log.description, style: TextStyle(color: textColor, fontWeight: FontWeight.w500)),
+                  subtitle: Text(
+                    "${log.employeeId} • ${DateFormat.yMMMd().add_jms().format(log.timestamp)}",
+                    style: TextStyle(color: textColor.withOpacity(0.7), fontSize: 12),
+                  ),
+                );
+              },
+              separatorBuilder: (context, index) => const Divider(color: Colors.white24, height: 1),
+            ),
         ],
       ),
     );
+  }
+
+  void _navigateToSlotManagement() async {
+    final result = await Navigator.push<ChangeLog>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SlotManagementScreen(
+          slots: widget.room.slots,
+          roomName: widget.room.name,
+        ),
+      ),
+    );
+
+    if (result != null && mounted) {
+      setState(() {
+        _changeLogs.insert(0, result);
+      });
+    }
   }
 
   Widget _buildActionButtons(BuildContext context) {
@@ -141,13 +198,55 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
           child: ElevatedButton.icon(
             icon: const Icon(Icons.grid_on),
             label: const Text('Manage Slots'),
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) =>
-                SlotManagementScreen(slots: widget.room.slots, roomName: widget.room.name),
-              ));
-            },
+            onPressed: _navigateToSlotManagement,
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildNotificationSwitch(bool isDarkMode, Color textColor) {
+    return GlassmorphicContainer(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+      margin: EdgeInsets.zero,
+      child: SwitchListTile(
+        title: Text('Enable Notifications', style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
+        subtitle: Text('Receive alerts for this room', style: TextStyle(color: textColor.withOpacity(0.7))),
+        value: _notificationsEnabled,
+        onChanged: (value) {
+          setState(() => _notificationsEnabled = value);
+        },
+        activeColor: isDarkMode ? AppTheme.darkPrimaryColor : AppTheme.lightPrimaryColor,
+        contentPadding: EdgeInsets.zero,
+      ),
+    );
+  }
+
+  Widget _buildChartCard(bool isDarkMode, Color textColor) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Temperature Trend', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textColor)),
+        const SizedBox(height: 20),
+        SizedBox(
+          height: 120,
+          child: LineChart(_buildTemperatureChartData(isDarkMode)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMetricItem(String label, String value, IconData icon, Color color, Color textColor) {
+    return Column(
+      children: [
+        CircleAvatar(
+          radius: 28,
+          backgroundColor: color.withOpacity(0.9),
+          child: Icon(icon, size: 28, color: Colors.white),
+        ),
+        const SizedBox(height: 8),
+        Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textColor)),
+        Text(label, style: TextStyle(fontSize: 12, color: textColor.withOpacity(0.7))),
       ],
     );
   }
@@ -157,10 +256,10 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
     return LineChartData(
       gridData: const FlGridData(show: false),
       titlesData: const FlTitlesData(
-          leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
       ),
       borderData: FlBorderData(show: false),
       minX: 0,
