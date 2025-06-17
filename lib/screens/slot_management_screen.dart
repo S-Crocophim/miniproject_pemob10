@@ -10,6 +10,7 @@ class SlotManagementScreen extends StatefulWidget {
   const SlotManagementScreen({super.key, required this.slots, required this.roomName});
 
   @override
+  // ignore: library_private_types_in_public_api
   _SlotManagementScreenState createState() => _SlotManagementScreenState();
 }
 
