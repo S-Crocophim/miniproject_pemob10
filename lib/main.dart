@@ -1,9 +1,10 @@
 // lib/main.dart
-import 'package:miniproject_pemob10/providers/auth_provider.dart';
-import 'package:miniproject_pemob10/providers/cold_room_provider.dart';
-import 'package:miniproject_pemob10/screens/dashboard_screen.dart';
-import 'package:miniproject_pemob10/screens/login_screen.dart';
-import 'package:miniproject_pemob10/utils/app_theme.dart';
+import '/providers/auth_provider.dart';
+import '/providers/cold_room_provider.dart';
+import '/providers/theme_provider.dart';
+import '/screens/dashboard_screen.dart';
+import '/screens/login_screen.dart';
+import '/utils/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -20,11 +21,20 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ColdRoomProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: MaterialApp(
-        title: 'Cold Room Monitoring',
-        theme: AppTheme.theme,
-        home: Consumer<AuthProvider>(
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            title: 'Cold Room Monitoring',
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+            home: child,
+            debugShowCheckedModeBanner: false,
+          );
+        },
+        child: Consumer<AuthProvider>(
           builder: (context, auth, _) {
             if (auth.isLoggedIn) {
               return const DashboardScreen();
@@ -33,7 +43,6 @@ class MyApp extends StatelessWidget {
             }
           },
         ),
-        debugShowCheckedModeBanner: false,
       ),
     );
   }

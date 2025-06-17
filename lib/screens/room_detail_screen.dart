@@ -1,11 +1,13 @@
 // lib/screens/room_detail_screen.dart
 import '/models/cold_room.dart';
+import '/providers/theme_provider.dart';
 import '/screens/cctv_view_screen.dart';
 import '/screens/slot_management_screen.dart';
 import '/utils/app_theme.dart';
 import '/widgets/glassmorphic_container.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class RoomDetailScreen extends StatefulWidget {
   final ColdRoom room;
@@ -21,6 +23,10 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final isDarkMode = themeProvider.isDarkMode;
+    final textColor = isDarkMode ? AppTheme.darkTextColor : AppTheme.lightTextColor;
+    
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -28,7 +34,7 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
         backgroundColor: Colors.transparent,
       ),
       body: Container(
-        decoration: AppTheme.backgroundGradient,
+        decoration: isDarkMode ? AppTheme.darkBackgroundGradient : AppTheme.lightBackgroundGradient,
         child: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
@@ -40,21 +46,21 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                   margin: EdgeInsets.zero,
                   child: Column(
                     children: [
-                      const Text("Current Conditions", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textColor)),
+                      Text("Current Conditions", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
                       const SizedBox(height: 20),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          _buildMetricItem('Temp', '${widget.room.temperature}°C', Icons.thermostat, AppTheme.primaryColor),
-                          _buildMetricItem('Humidity', '${widget.room.humidity}%', Icons.water_drop, AppTheme.secondaryColor),
-                          _buildMetricItem('Door', widget.room.isDoorOpen ? 'Open' : 'Closed', Icons.door_front_door, AppTheme.statusAlert),
+                          _buildMetricItem('Temp', '${widget.room.temperature}°C', Icons.thermostat, isDarkMode ? AppTheme.darkWarningColor : AppTheme.lightWarningColor, textColor),
+                          _buildMetricItem('Humidity', '${widget.room.humidity}%', Icons.water_drop, isDarkMode ? AppTheme.darkSecondaryColor : AppTheme.lightSecondaryColor, textColor),
+                          _buildMetricItem('Door', widget.room.isDoorOpen ? 'Open' : 'Closed', Icons.door_front_door, isDarkMode ? AppTheme.darkStatusAlert : AppTheme.lightStatusAlert, textColor),
                         ],
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 16),
-                _buildChartCard(),
+                _buildChartCard(isDarkMode, textColor),
                 const SizedBox(height: 16),
                 _buildActionButtons(context),
                 const SizedBox(height: 16),
@@ -62,13 +68,13 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
                   margin: EdgeInsets.zero,
                   child: SwitchListTile(
-                    title: const Text('Enable Notifications', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textColor)),
-                    subtitle: Text('Receive alerts for this room', style: TextStyle(color: AppTheme.textColor.withOpacity(0.7))),
+                    title: Text('Enable Notifications', style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
+                    subtitle: Text('Receive alerts for this room', style: TextStyle(color: textColor.withOpacity(0.7))),
                     value: _notificationsEnabled,
                     onChanged: (value) {
                       setState(() => _notificationsEnabled = value);
                     },
-                    activeColor: AppTheme.primaryColor,
+                    activeColor: isDarkMode ? AppTheme.darkPrimaryColor : AppTheme.lightPrimaryColor,
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
@@ -80,7 +86,7 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
     );
   }
 
-  Widget _buildMetricItem(String label, String value, IconData icon, Color color) {
+  Widget _buildMetricItem(String label, String value, IconData icon, Color color, Color textColor) {
     return Column(
       children: [
         CircleAvatar(
@@ -89,23 +95,23 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
           child: Icon(icon, size: 28, color: Colors.white),
         ),
         const SizedBox(height: 8),
-        Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textColor)),
-        Text(label, style: TextStyle(fontSize: 12, color: AppTheme.textColor.withOpacity(0.7))),
+        Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textColor)),
+        Text(label, style: TextStyle(fontSize: 12, color: textColor.withOpacity(0.7))),
       ],
     );
   }
 
-  Widget _buildChartCard() {
+  Widget _buildChartCard(bool isDarkMode, Color textColor) {
     return GlassmorphicContainer(
       margin: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Temperature Trend (Last 24h)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textColor)),
+          Text('Temperature Trend (Last 24h)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textColor)),
           const SizedBox(height: 20),
           SizedBox(
             height: 150,
-            child: LineChart(_buildTemperatureChartData()),
+            child: LineChart(_buildTemperatureChartData(isDarkMode)),
           ),
         ],
       ),
@@ -125,7 +131,8 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
               ));
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.secondaryColor
+              backgroundColor: Theme.of(context).colorScheme.secondary,
+              foregroundColor: Colors.white,
             ),
           ),
         ),
@@ -145,14 +152,15 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
     );
   }
 
-  LineChartData _buildTemperatureChartData() {
+  LineChartData _buildTemperatureChartData(bool isDarkMode) {
+    final primaryColor = isDarkMode ? AppTheme.darkPrimaryColor : AppTheme.lightPrimaryColor;
     return LineChartData(
       gridData: const FlGridData(show: false),
       titlesData: const FlTitlesData(
-        leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
       ),
       borderData: FlBorderData(show: false),
       minX: 0,
@@ -167,13 +175,13 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
             FlSpot(8, 3.5), FlSpot(9, 3.2), FlSpot(10, 2.9), FlSpot(11, 3.1),
           ],
           isCurved: true,
-          color: AppTheme.primaryColor,
+          color: primaryColor,
           barWidth: 4,
           isStrokeCapRound: true,
           dotData: const FlDotData(show: false),
           belowBarData: BarAreaData(
             show: true,
-            color: AppTheme.primaryColor.withOpacity(0.3),
+            color: primaryColor.withOpacity(0.3),
           ),
         ),
       ],

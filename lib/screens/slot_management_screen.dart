@@ -22,18 +22,24 @@ class _SlotManagementScreenState extends State<SlotManagementScreen> {
     _currentSlots = widget.slots.map((s) => SlotStorage(id: s.id, status: s.status)).toList();
   }
 
-  Color _getColorForStatus(SlotStatus status) {
+  // FIXED: This function now accepts the current theme brightness to select the correct color.
+  Color _getColorForStatus(SlotStatus status, Brightness brightness) {
+    final bool isDarkMode = brightness == Brightness.dark;
+    
     switch (status) {
       case SlotStatus.occupied:
-        return AppTheme.statusAlert;
+        return isDarkMode ? AppTheme.darkStatusAlert : AppTheme.lightStatusAlert;
       case SlotStatus.processing:
-        return AppTheme.primaryColor;
+        return isDarkMode ? AppTheme.darkPrimaryColor : AppTheme.lightPrimaryColor;
       case SlotStatus.available:
-        return AppTheme.statusNormal;
-      }
+        return isDarkMode ? AppTheme.darkStatusNormal : AppTheme.lightStatusNormal;
+    }
   }
 
   void _showStatusChangeDialog(int index) {
+    // Determine theme inside the method to ensure dialogs are also theme-aware.
+    final brightness = Theme.of(context).brightness;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -45,7 +51,7 @@ class _SlotManagementScreenState extends State<SlotManagementScreen> {
             children: SlotStatus.values.map((status) {
               return ListTile(
                 title: Text(status.name.capitalize()),
-                leading: Icon(Icons.circle, color: _getColorForStatus(status)),
+                leading: Icon(Icons.circle, color: _getColorForStatus(status, brightness)),
                 onTap: () {
                   setState(() {
                     _currentSlots[index].status = status;
@@ -58,7 +64,11 @@ class _SlotManagementScreenState extends State<SlotManagementScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text("Cancel", style: TextStyle(color: AppTheme.secondaryColor)),
+              // FIXED: Get the secondary color from the current theme's colorScheme.
+              child: Text(
+                "Cancel",
+                style: TextStyle(color: Theme.of(context).colorScheme.secondary),
+              ),
             )
           ],
         );
@@ -68,10 +78,14 @@ class _SlotManagementScreenState extends State<SlotManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Get the current brightness to determine which gradient to use.
+    final brightness = Theme.of(context).brightness;
+    final isDarkMode = brightness == Brightness.dark;
+    
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('Slot Management'),
+        title: const Text('Slot Management'),
         actions: [
           IconButton(
             icon: const Icon(Icons.save),
@@ -85,8 +99,9 @@ class _SlotManagementScreenState extends State<SlotManagementScreen> {
           )
         ],
       ),
+      // FIXED: Choose the correct gradient based on the current theme.
       body: Container(
-        decoration: AppTheme.backgroundGradient,
+        decoration: isDarkMode ? AppTheme.darkBackgroundGradient : AppTheme.lightBackgroundGradient,
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -102,7 +117,8 @@ class _SlotManagementScreenState extends State<SlotManagementScreen> {
                 return GestureDetector(
                   onTap: () => _showStatusChangeDialog(index),
                   child: Card(
-                    color: _getColorForStatus(slot.status).withOpacity(0.9),
+                    // FIXED: Pass the current theme brightness to the color function.
+                    color: _getColorForStatus(slot.status, brightness).withOpacity(0.9),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16.0),
                     ),
@@ -110,8 +126,9 @@ class _SlotManagementScreenState extends State<SlotManagementScreen> {
                     child: Center(
                       child: Text(
                         slot.id,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          // Determine text color for contrast.
+                          color: isDarkMode ? Colors.black87 : Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 20,
                         ),
