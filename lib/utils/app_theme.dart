@@ -2,9 +2,9 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  static const Color primaryColor = Color(0xFF0D47A1); // Biru Tua
-  static const Color secondaryColor = Color(0xFF42A5F5); // Biru Muda
-  static const Color accentColor = Color(0xFFFFC107); // Kuning
+  static const Color primaryColor = Color(0xFF0D47A1); // Dark Blue
+  static const Color secondaryColor = Color(0xFF42A5F5); // Light Blue
+  static const Color accentColor = Color(0xFFFFC107); // Yellow
   static const Color backgroundColor = Color(0xFFF5F5F5);
   static const Color textColor = Color(0xFF333333);
 
@@ -12,8 +12,7 @@ class AppTheme {
     return ThemeData(
       primaryColor: primaryColor,
       scaffoldBackgroundColor: backgroundColor,
-      fontFamily:
-          'Poppins', // Pastikan Anda menambahkan font ini di pubspec.yaml
+      fontFamily: 'Poppins', // Make sure you add this font in pubspec.yaml
 
       colorScheme: const ColorScheme.light(
         primary: primaryColor,
@@ -27,12 +26,9 @@ class AppTheme {
         elevation: 0,
         iconTheme: IconThemeData(color: Colors.white),
         titleTextStyle: TextStyle(
-          color: Colors.white,
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
+            color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
       ),
-
+      
       buttonTheme: const ButtonThemeData(
         buttonColor: primaryColor,
         textTheme: ButtonTextTheme.primary,

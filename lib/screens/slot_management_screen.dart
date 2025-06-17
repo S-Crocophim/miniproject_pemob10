@@ -1,17 +1,13 @@
 // lib/screens/slot_management_screen.dart
 import 'package:flutter/material.dart';
-import 'package:miniproject_pemob10/models/slot_storage.dart';
-import 'package:miniproject_pemob10/utils/app_theme.dart';
+import '/models/slot_storage.dart';
+import '/utils/app_theme.dart';
 
 class SlotManagementScreen extends StatefulWidget {
   final List<SlotStorage> slots;
   final String roomName;
 
-  const SlotManagementScreen({
-    super.key,
-    required this.slots,
-    required this.roomName,
-  });
+  const SlotManagementScreen({super.key, required this.slots, required this.roomName});
 
   @override
   _SlotManagementScreenState createState() => _SlotManagementScreenState();
@@ -23,21 +19,19 @@ class _SlotManagementScreenState extends State<SlotManagementScreen> {
   @override
   void initState() {
     super.initState();
-    // Buat salinan lokal agar perubahan tidak langsung mempengaruhi state sebelumnya
-    _currentSlots = widget.slots
-        .map((s) => SlotStorage(id: s.id, status: s.status))
-        .toList();
+    // Create a local copy to avoid modifying the original state directly
+    _currentSlots = widget.slots.map((s) => SlotStorage(id: s.id, status: s.status)).toList();
   }
 
   Color _getColorForStatus(SlotStatus status) {
     switch (status) {
-      case SlotStatus.terisi:
+      case SlotStatus.occupied:
         return Colors.red.shade400;
-      case SlotStatus.dalamProses:
+      case SlotStatus.processing:
         return AppTheme.accentColor;
-      case SlotStatus.tersedia:
+      case SlotStatus.available:
         return Colors.green.shade400;
-    }
+      }
   }
 
   void _showStatusChangeDialog(int index) {
@@ -45,20 +39,12 @@ class _SlotManagementScreenState extends State<SlotManagementScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Ubah Status Slot ${_currentSlots[index].id}'),
+          title: Text('Change Status for Slot ${_currentSlots[index].id}'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: SlotStatus.values.map((status) {
               return ListTile(
-                title: Text(
-                  status.name
-                      .replaceAllMapped(
-                        RegExp(r'([A-Z])'),
-                        (match) => ' ${match.group(1)}',
-                      )
-                      .trim()
-                      .capitalize(),
-                ),
+                title: Text(status.name.capitalize()),
                 leading: Icon(Icons.circle, color: _getColorForStatus(status)),
                 onTap: () {
                   setState(() {
@@ -69,29 +55,29 @@ class _SlotManagementScreenState extends State<SlotManagementScreen> {
               );
             }).toList(),
           ),
+          actions: [TextButton(onPressed: ()=> Navigator.of(context).pop(), child: const Text("Cancel"))],
         );
       },
     );
   }
-
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Manajemen Slot - ${widget.roomName}'),
+        title: Text('Slot Management - ${widget.roomName}'),
         actions: [
           IconButton(
             icon: const Icon(Icons.save),
+            tooltip: 'Save Changes',
             onPressed: () {
-              // Di aplikasi nyata, panggil API untuk menyimpan perubahan.
+              // In a real app, call an API to save the changes.
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Perubahan slot disimpan! (simulasi)'),
-                ),
+                const SnackBar(content: Text('Slot changes saved! (simulation)')),
               );
               Navigator.pop(context);
             },
-          ),
+          )
         ],
       ),
       body: Padding(
@@ -130,7 +116,8 @@ class _SlotManagementScreenState extends State<SlotManagementScreen> {
 
 // Extension to capitalize first letter
 extension StringExtension on String {
-  String capitalize() {
-    return "${this[0].toUpperCase()}${substring(1)}";
-  }
+    String capitalize() {
+      if (isEmpty) return this;
+      return "${this[0].toUpperCase()}${substring(1)}";
+    }
 }

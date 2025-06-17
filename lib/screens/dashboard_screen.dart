@@ -1,9 +1,9 @@
 // lib/screens/dashboard_screen.dart
-import 'package:miniproject_pemob10/providers/auth_provider.dart';
+import '/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:miniproject_pemob10/providers/cold_room_provider.dart';
-import 'package:miniproject_pemob10/widgets/cold_room_card.dart';
+import '/providers/cold_room_provider.dart';
+import '/widgets/cold_room_card.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -16,7 +16,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    // Panggil fetch data saat screen pertama kali dibuka
+    // Fetch data when the screen is first opened
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ColdRoomProvider>(context, listen: false).fetchColdRooms();
     });
@@ -32,12 +32,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications),
-            onPressed: () {
-              /* Halaman Notifikasi */
-            },
+            tooltip: 'Notifications',
+            onPressed: () { /* TODO: Implement Notifications Page */ },
           ),
           IconButton(
             icon: const Icon(Icons.logout),
+            tooltip: 'Logout',
             onPressed: () {
               Provider.of<AuthProvider>(context, listen: false).logout();
             },

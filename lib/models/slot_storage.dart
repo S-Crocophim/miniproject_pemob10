@@ -1,5 +1,5 @@
 // lib/models/slot_storage.dart
-enum SlotStatus { tersedia, terisi, dalamProses }
+enum SlotStatus { available, occupied, processing }
 
 class SlotStorage {
   final String id;

@@ -1,14 +1,13 @@
 // lib/screens/login_screen.dart
 import 'package:flutter/material.dart';
-import 'package:miniproject_pemob10/utils/app_theme.dart';
 import 'package:provider/provider.dart';
-import 'package:miniproject_pemob10/providers/auth_provider.dart';
+import '/providers/auth_provider.dart';
+import '/utils/app_theme.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _LoginScreenState createState() => _LoginScreenState();
 }
 
@@ -25,9 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (!success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Login Gagal! Cek kembali kredensial Anda.'),
-        ),
+        const SnackBar(content: Text('Login Failed! Please check your credentials.')),
       );
     }
   }
@@ -45,10 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               const Icon(Icons.ac_unit, size: 80, color: AppTheme.primaryColor),
               const SizedBox(height: 16),
-              const Text(
-                'Cold Room Monitoring',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
+              const Text('Cold Room Monitoring', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
               const SizedBox(height: 40),
               TextField(
                 controller: _usernameController,
@@ -75,9 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: _login,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
+                        style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
                         child: const Text('Login'),
                       ),
                     ),

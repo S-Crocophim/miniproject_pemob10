@@ -1,10 +1,10 @@
 // lib/screens/room_detail_screen.dart
-import 'package:miniproject_pemob10/screens/cctv_view_screen.dart';
-import 'package:miniproject_pemob10/screens/slot_management_screen.dart';
-import 'package:miniproject_pemob10/utils/app_theme.dart';
+import '/screens/cctv_view_screen.dart';
+import '/screens/slot_management_screen.dart';
+import '/utils/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:miniproject_pemob10/models/cold_room.dart';
+import '/models/cold_room.dart';
 
 class RoomDetailScreen extends StatefulWidget {
   final ColdRoom room;
@@ -21,22 +21,19 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.room.name)),
+      appBar: AppBar(
+        title: Text(widget.room.name),
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Section 1: Key Metrics
               _buildKeyMetrics(),
               const SizedBox(height: 24),
-
-              // Section 2: Temperature Chart
               _buildChartCard(),
               const SizedBox(height: 24),
-
-              // Section 3: Actions & Settings
               _buildActionButtons(context),
               const SizedBox(height: 16),
               _buildSettingsCard(),
@@ -51,50 +48,25 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _buildMetricCard(
-          'Suhu',
-          '${widget.room.temperature}°C',
-          Icons.thermostat,
-          Colors.orange,
-        ),
-        _buildMetricCard(
-          'Kelembaban',
-          '${widget.room.humidity}%',
-          Icons.water_drop,
-          Colors.blue,
-        ),
-        _buildMetricCard(
-          'Pintu',
-          widget.room.isDoorOpen ? 'Terbuka' : 'Tertutup',
-          Icons.door_front_door,
-          Colors.red.shade300,
-        ),
+        _buildMetricCard('Temperature', '${widget.room.temperature}°C', Icons.thermostat, Colors.orange),
+        _buildMetricCard('Humidity', '${widget.room.humidity}%', Icons.water_drop, Colors.blue),
+        _buildMetricCard('Door', widget.room.isDoorOpen ? 'Open' : 'Closed', Icons.door_front_door, Colors.red.shade300),
       ],
     );
   }
 
-  Widget _buildMetricCard(
-    String label,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
+  Widget _buildMetricCard(String label, String value, IconData icon, Color color) {
     return Expanded(
       child: Card(
         color: color.withOpacity(0.1),
+        margin: const EdgeInsets.symmetric(horizontal: 4),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
               Icon(icon, size: 32, color: color),
               const SizedBox(height: 8),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               Text(label, style: const TextStyle(color: Colors.black54)),
             ],
           ),
@@ -111,7 +83,7 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Tren Suhu (24 Jam Terakhir)',
+              'Temperature Trend (Last 24h)',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
@@ -131,21 +103,15 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
         Expanded(
           child: ElevatedButton.icon(
             icon: const Icon(Icons.videocam),
-            label: const Text('Lihat CCTV'),
+            label: const Text('View CCTV'),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => CCTVViewScreen(
-                    cctvUrl: widget.room.cctvUrl,
-                    roomName: widget.room.name,
-                  ),
-                ),
-              );
+              Navigator.push(context, MaterialPageRoute(builder: (_) =>
+                CCTVViewScreen(cctvUrl: widget.room.cctvUrl, roomName: widget.room.name),
+              ));
             },
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 12),
-              backgroundColor: AppTheme.secondaryColor,
+              backgroundColor: AppTheme.secondaryColor
             ),
           ),
         ),
@@ -153,17 +119,11 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
         Expanded(
           child: ElevatedButton.icon(
             icon: const Icon(Icons.grid_on),
-            label: const Text('Kelola Slot'),
+            label: const Text('Manage Slots'),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => SlotManagementScreen(
-                    slots: widget.room.slots,
-                    roomName: widget.room.name,
-                  ),
-                ),
-              );
+               Navigator.push(context, MaterialPageRoute(builder: (_) =>
+                SlotManagementScreen(slots: widget.room.slots, roomName: widget.room.name),
+              ));
             },
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 12),
@@ -177,12 +137,9 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
   Widget _buildSettingsCard() {
     return Card(
       child: ListTile(
-        leading: const Icon(
-          Icons.notifications_active,
-          color: AppTheme.primaryColor,
-        ),
-        title: const Text('Aktifkan Notifikasi'),
-        subtitle: const Text('Terima alert untuk ruangan ini'),
+        leading: const Icon(Icons.notifications_active, color: AppTheme.primaryColor),
+        title: const Text('Enable Notifications'),
+        subtitle: const Text('Receive alerts for this room'),
         trailing: Switch(
           value: _notificationsEnabled,
           onChanged: (value) {
@@ -190,18 +147,15 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
               _notificationsEnabled = value;
             });
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  'Notifikasi untuk ${widget.room.name} ${value ? 'diaktifkan' : 'dimatikan'}',
-                ),
-              ),
+              SnackBar(content: Text('Notifications for ${widget.room.name} have been ${value ? 'enabled' : 'disabled'}'))
             );
           },
+          activeColor: AppTheme.primaryColor,
         ),
       ),
     );
   }
-
+  
   // Dummy data for chart
   LineChartData _buildTemperatureChartData() {
     return LineChartData(
@@ -220,18 +174,9 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
       lineBarsData: [
         LineChartBarData(
           spots: const [
-            FlSpot(0, 3),
-            FlSpot(1, 1),
-            FlSpot(2, 4),
-            FlSpot(3, 2),
-            FlSpot(4, 2.5),
-            FlSpot(5, 1.5),
-            FlSpot(6, 3),
-            FlSpot(7, 2.8),
-            FlSpot(8, 3.5),
-            FlSpot(9, 3.2),
-            FlSpot(10, 2.9),
-            FlSpot(11, 3.1),
+            FlSpot(0, 3), FlSpot(1, 1), FlSpot(2, 4), FlSpot(3, 2),
+            FlSpot(4, 2.5), FlSpot(5, 1.5), FlSpot(6, 3), FlSpot(7, 2.8),
+            FlSpot(8, 3.5), FlSpot(9, 3.2), FlSpot(10, 2.9), FlSpot(11, 3.1),
           ],
           isCurved: true,
           color: AppTheme.primaryColor,

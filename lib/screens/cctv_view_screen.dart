@@ -6,11 +6,7 @@ class CCTVViewScreen extends StatefulWidget {
   final String cctvUrl;
   final String roomName;
 
-  const CCTVViewScreen({
-    super.key,
-    required this.cctvUrl,
-    required this.roomName,
-  });
+  const CCTVViewScreen({super.key, required this.cctvUrl, required this.roomName});
 
   @override
   _CCTVViewScreenState createState() => _CCTVViewScreenState();
@@ -23,22 +19,22 @@ class _CCTVViewScreenState extends State<CCTVViewScreen> {
   @override
   void initState() {
     super.initState();
-    // URL video dummy. Ganti dengan URL RTSP atau HLS sesungguhnya.
+    // Dummy video URL. Replace with your actual RTSP or HLS stream URL.
     _controller = VideoPlayerController.networkUrl(
-      Uri.parse("CCTV_ColdRoom.mp4"),
+      Uri.parse(widget.cctvUrl),
     );
 
-    _initializeVideoPlayerFuture = _controller.initialize().then((_) {
-      // Memulai video secara otomatis dan mengulanginya
-      _controller.play();
-      _controller.setLooping(true);
-      setState(() {});
+    _initializeVideoPlayerFuture = _controller.initialize().then((_){
+        // Auto-play and loop the video
+        _controller.play();
+        _controller.setLooping(true);
+        setState(() {});
     });
   }
 
   @override
   void dispose() {
-    // Pastikan untuk membuang controller untuk melepaskan resource
+    // Ensure you dispose of the controller to free up resources.
     _controller.dispose();
     super.dispose();
   }
@@ -48,7 +44,7 @@ class _CCTVViewScreenState extends State<CCTVViewScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('CCTV - ${widget.roomName}'),
-        backgroundColor: Colors.black, // Tema gelap untuk layar CCTV
+        backgroundColor: Colors.black, // Dark theme for CCTV screen
       ),
       backgroundColor: Colors.black,
       body: Center(
@@ -68,7 +64,7 @@ class _CCTVViewScreenState extends State<CCTVViewScreen> {
               );
             } else if (snapshot.hasError) {
               return Text(
-                'Gagal memuat video: ${snapshot.error}',
+                'Failed to load video: ${snapshot.error}',
                 style: const TextStyle(color: Colors.white),
               );
             } else {
@@ -81,12 +77,13 @@ class _CCTVViewScreenState extends State<CCTVViewScreen> {
   }
 
   Widget _buildControlsOverlay() {
-    return Container(
-      color: Colors.black26,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          IconButton(
+    return AnimatedOpacity(
+      opacity: _controller.value.isPlaying ? 0.0 : 1.0,
+      duration: const Duration(milliseconds: 300),
+      child: Container(
+        color: Colors.black26,
+        child: Center(
+          child: IconButton(
             onPressed: () {
               setState(() {
                 _controller.value.isPlaying
@@ -95,14 +92,12 @@ class _CCTVViewScreenState extends State<CCTVViewScreen> {
               });
             },
             icon: Icon(
-              _controller.value.isPlaying
-                  ? Icons.pause_circle_filled
-                  : Icons.play_circle_filled,
+              _controller.value.isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
               color: Colors.white,
               size: 50.0,
             ),
           ),
-        ],
+        ),
       ),
     );
   }

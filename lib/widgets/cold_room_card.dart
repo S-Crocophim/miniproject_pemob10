@@ -1,16 +1,16 @@
 // lib/widgets/cold_room_card.dart
 import 'package:flutter/material.dart';
-import 'package:miniproject_pemob10/models/cold_room.dart';
-import 'package:miniproject_pemob10/screens/room_detail_screen.dart';
-import 'package:miniproject_pemob10/utils/app_theme.dart';
+import '/models/cold_room.dart';
+import '/screens/room_detail_screen.dart';
+import '/utils/app_theme.dart';
 
 class ColdRoomCard extends StatelessWidget {
   final ColdRoom room;
 
   const ColdRoomCard({super.key, required this.room});
-
+  
   Color _getStatusColor(RoomStatus status) {
-    switch (status) {
+    switch(status) {
       case RoomStatus.alert:
         return AppTheme.accentColor;
       case RoomStatus.warning:
@@ -26,10 +26,7 @@ class ColdRoomCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
       child: InkWell(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => RoomDetailScreen(room: room)),
-          );
+          Navigator.push(context, MaterialPageRoute(builder: (_) => RoomDetailScreen(room: room)));
         },
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -39,31 +36,18 @@ class ColdRoomCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    room.name,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  Text(room.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: _getStatusColor(room.status).withOpacity(0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       room.status.name.toUpperCase(),
-                      style: TextStyle(
-                        color: _getStatusColor(room.status),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: _getStatusColor(room.status), fontWeight: FontWeight.bold, fontSize: 12),
                     ),
-                  ),
+                  )
                 ],
               ),
               const SizedBox(height: 8),
@@ -72,23 +56,11 @@ class ColdRoomCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildInfoItem(
-                    Icons.thermostat,
-                    '${room.temperature}°C',
-                    'Suhu',
-                  ),
-                  _buildInfoItem(
-                    Icons.water_drop_outlined,
-                    '${room.humidity}%',
-                    'Kelembaban',
-                  ),
-                  _buildInfoItem(
-                    Icons.door_front_door_outlined,
-                    room.isDoorOpen ? 'Terbuka' : 'Tertutup',
-                    'Pintu',
-                  ),
+                  _buildInfoItem(Icons.thermostat, '${room.temperature}°C', 'Temp.'),
+                  _buildInfoItem(Icons.water_drop_outlined, '${room.humidity}%', 'Humidity'),
+                  _buildInfoItem(Icons.door_front_door_outlined, room.isDoorOpen ? 'Open' : 'Closed', 'Door'),
                 ],
-              ),
+              )
             ],
           ),
         ),
@@ -101,10 +73,7 @@ class ColdRoomCard extends StatelessWidget {
       children: [
         Icon(icon, color: AppTheme.primaryColor, size: 28),
         const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-        ),
+        Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
         Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
       ],
     );
