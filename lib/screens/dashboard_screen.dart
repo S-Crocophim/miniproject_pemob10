@@ -3,6 +3,7 @@ import '/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '/providers/cold_room_provider.dart';
+import '/utils/app_theme.dart';
 import '/widgets/cold_room_card.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -16,7 +17,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    // Fetch data when the screen is first opened
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ColdRoomProvider>(context, listen: false).fetchColdRooms();
     });
@@ -27,16 +27,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final roomProvider = Provider.of<ColdRoomProvider>(context);
 
     return Scaffold(
+      extendBodyBehindAppBar: true, // Allows content to go behind AppBar
       appBar: AppBar(
         title: const Text('Dashboard'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications),
+            icon: const Icon(Icons.notifications_none, size: 28),
             tooltip: 'Notifications',
-            onPressed: () { /* TODO: Implement Notifications Page */ },
+            onPressed: () {},
           ),
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout, size: 28),
             tooltip: 'Logout',
             onPressed: () {
               Provider.of<AuthProvider>(context, listen: false).logout();
@@ -44,18 +45,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
       ),
-      body: roomProvider.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: () => roomProvider.fetchColdRooms(),
-              child: ListView.builder(
-                padding: const EdgeInsets.all(8.0),
-                itemCount: roomProvider.rooms.length,
-                itemBuilder: (context, index) {
-                  return ColdRoomCard(room: roomProvider.rooms[index]);
-                },
-              ),
-            ),
+      body: Container(
+        decoration: AppTheme.backgroundGradient,
+        child: SafeArea(
+          child: roomProvider.isLoading
+              ? const Center(child: CircularProgressIndicator(color: Colors.white))
+              : RefreshIndicator(
+                  onRefresh: () => roomProvider.fetchColdRooms(),
+                  color: AppTheme.primaryColor,
+                  backgroundColor: Colors.white,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+                    itemCount: roomProvider.rooms.length,
+                    itemBuilder: (context, index) {
+                      return ColdRoomCard(room: roomProvider.rooms[index]);
+                    },
+                  ),
+                ),
+        ),
+      ),
     );
   }
 }

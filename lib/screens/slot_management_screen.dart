@@ -1,7 +1,7 @@
 // lib/screens/slot_management_screen.dart
-import 'package:flutter/material.dart';
 import '/models/slot_storage.dart';
 import '/utils/app_theme.dart';
+import 'package:flutter/material.dart';
 
 class SlotManagementScreen extends StatefulWidget {
   final List<SlotStorage> slots;
@@ -10,7 +10,6 @@ class SlotManagementScreen extends StatefulWidget {
   const SlotManagementScreen({super.key, required this.slots, required this.roomName});
 
   @override
-  // ignore: library_private_types_in_public_api
   _SlotManagementScreenState createState() => _SlotManagementScreenState();
 }
 
@@ -20,18 +19,17 @@ class _SlotManagementScreenState extends State<SlotManagementScreen> {
   @override
   void initState() {
     super.initState();
-    // Create a local copy to avoid modifying the original state directly
     _currentSlots = widget.slots.map((s) => SlotStorage(id: s.id, status: s.status)).toList();
   }
 
   Color _getColorForStatus(SlotStatus status) {
     switch (status) {
       case SlotStatus.occupied:
-        return Colors.red.shade400;
+        return AppTheme.statusAlert;
       case SlotStatus.processing:
-        return AppTheme.accentColor;
+        return AppTheme.primaryColor;
       case SlotStatus.available:
-        return Colors.green.shade400;
+        return AppTheme.statusNormal;
       }
   }
 
@@ -40,6 +38,7 @@ class _SlotManagementScreenState extends State<SlotManagementScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Text('Change Status for Slot ${_currentSlots[index].id}'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -56,23 +55,28 @@ class _SlotManagementScreenState extends State<SlotManagementScreen> {
               );
             }).toList(),
           ),
-          actions: [TextButton(onPressed: ()=> Navigator.of(context).pop(), child: const Text("Cancel"))],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("Cancel", style: TextStyle(color: AppTheme.secondaryColor)),
+            )
+          ],
         );
       },
     );
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('Slot Management - ${widget.roomName}'),
+        title: Text('Slot Management'),
         actions: [
           IconButton(
             icon: const Icon(Icons.save),
             tooltip: 'Save Changes',
             onPressed: () {
-              // In a real app, call an API to save the changes.
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Slot changes saved! (simulation)')),
               );
@@ -81,44 +85,52 @@ class _SlotManagementScreenState extends State<SlotManagementScreen> {
           )
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 4,
-            crossAxisSpacing: 8,
-            mainAxisSpacing: 8,
-          ),
-          itemCount: _currentSlots.length,
-          itemBuilder: (context, index) {
-            final slot = _currentSlots[index];
-            return InkWell(
-              onTap: () => _showStatusChangeDialog(index),
-              child: Card(
-                color: _getColorForStatus(slot.status),
-                child: Center(
-                  child: Text(
-                    slot.id,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
+      body: Container(
+        decoration: AppTheme.backgroundGradient,
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+              ),
+              itemCount: _currentSlots.length,
+              itemBuilder: (context, index) {
+                final slot = _currentSlots[index];
+                return GestureDetector(
+                  onTap: () => _showStatusChangeDialog(index),
+                  child: Card(
+                    color: _getColorForStatus(slot.status).withOpacity(0.9),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16.0),
+                    ),
+                    elevation: 5,
+                    child: Center(
+                      child: Text(
+                        slot.id,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-            );
-          },
+                );
+              },
+            ),
+          ),
         ),
       ),
     );
   }
 }
 
-// Extension to capitalize first letter
 extension StringExtension on String {
-    String capitalize() {
-      if (isEmpty) return this;
-      return "${this[0].toUpperCase()}${substring(1)}";
-    }
+  String capitalize() {
+    if (isEmpty) return this;
+    return "${this[0].toUpperCase()}${substring(1)}";
+  }
 }

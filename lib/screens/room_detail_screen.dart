@@ -1,10 +1,11 @@
 // lib/screens/room_detail_screen.dart
+import '/models/cold_room.dart';
 import '/screens/cctv_view_screen.dart';
 import '/screens/slot_management_screen.dart';
 import '/utils/app_theme.dart';
-import 'package:flutter/material.dart';
+import '/widgets/glassmorphic_container.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '/models/cold_room.dart';
+import 'package:flutter/material.dart';
 
 class RoomDetailScreen extends StatefulWidget {
   final ColdRoom room;
@@ -21,78 +22,92 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(widget.room.name),
+        title: Text(widget.room.name, style: const TextStyle(fontWeight: FontWeight.normal)),
+        backgroundColor: Colors.transparent,
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildKeyMetrics(),
-              const SizedBox(height: 24),
-              _buildChartCard(),
-              const SizedBox(height: 24),
-              _buildActionButtons(context),
-              const SizedBox(height: 16),
-              _buildSettingsCard(),
-            ],
+      body: Container(
+        decoration: AppTheme.backgroundGradient,
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                GlassmorphicContainer(
+                  padding: const EdgeInsets.all(20),
+                  margin: EdgeInsets.zero,
+                  child: Column(
+                    children: [
+                      const Text("Current Conditions", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textColor)),
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _buildMetricItem('Temp', '${widget.room.temperature}°C', Icons.thermostat, AppTheme.primaryColor),
+                          _buildMetricItem('Humidity', '${widget.room.humidity}%', Icons.water_drop, AppTheme.secondaryColor),
+                          _buildMetricItem('Door', widget.room.isDoorOpen ? 'Open' : 'Closed', Icons.door_front_door, AppTheme.statusAlert),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildChartCard(),
+                const SizedBox(height: 16),
+                _buildActionButtons(context),
+                const SizedBox(height: 16),
+                GlassmorphicContainer(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                  margin: EdgeInsets.zero,
+                  child: SwitchListTile(
+                    title: const Text('Enable Notifications', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textColor)),
+                    subtitle: Text('Receive alerts for this room', style: TextStyle(color: AppTheme.textColor.withOpacity(0.7))),
+                    value: _notificationsEnabled,
+                    onChanged: (value) {
+                      setState(() => _notificationsEnabled = value);
+                    },
+                    activeColor: AppTheme.primaryColor,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildKeyMetrics() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildMetricItem(String label, String value, IconData icon, Color color) {
+    return Column(
       children: [
-        _buildMetricCard('Temperature', '${widget.room.temperature}°C', Icons.thermostat, Colors.orange),
-        _buildMetricCard('Humidity', '${widget.room.humidity}%', Icons.water_drop, Colors.blue),
-        _buildMetricCard('Door', widget.room.isDoorOpen ? 'Open' : 'Closed', Icons.door_front_door, Colors.red.shade300),
+        CircleAvatar(
+          radius: 28,
+          backgroundColor: color.withOpacity(0.9),
+          child: Icon(icon, size: 28, color: Colors.white),
+        ),
+        const SizedBox(height: 8),
+        Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textColor)),
+        Text(label, style: TextStyle(fontSize: 12, color: AppTheme.textColor.withOpacity(0.7))),
       ],
     );
   }
 
-  Widget _buildMetricCard(String label, String value, IconData icon, Color color) {
-    return Expanded(
-      child: Card(
-        color: color.withOpacity(0.1),
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Icon(icon, size: 32, color: color),
-              const SizedBox(height: 8),
-              Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              Text(label, style: const TextStyle(color: Colors.black54)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildChartCard() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Temperature Trend (Last 24h)',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              height: 150,
-              child: LineChart(_buildTemperatureChartData()),
-            ),
-          ],
-        ),
+    return GlassmorphicContainer(
+      margin: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Temperature Trend (Last 24h)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textColor)),
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 150,
+            child: LineChart(_buildTemperatureChartData()),
+          ),
+        ],
       ),
     );
   }
@@ -110,7 +125,6 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
               ));
             },
             style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
               backgroundColor: AppTheme.secondaryColor
             ),
           ),
@@ -121,42 +135,16 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
             icon: const Icon(Icons.grid_on),
             label: const Text('Manage Slots'),
             onPressed: () {
-               Navigator.push(context, MaterialPageRoute(builder: (_) =>
+              Navigator.push(context, MaterialPageRoute(builder: (_) =>
                 SlotManagementScreen(slots: widget.room.slots, roomName: widget.room.name),
               ));
             },
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildSettingsCard() {
-    return Card(
-      child: ListTile(
-        leading: const Icon(Icons.notifications_active, color: AppTheme.primaryColor),
-        title: const Text('Enable Notifications'),
-        subtitle: const Text('Receive alerts for this room'),
-        trailing: Switch(
-          value: _notificationsEnabled,
-          onChanged: (value) {
-            setState(() {
-              _notificationsEnabled = value;
-            });
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Notifications for ${widget.room.name} have been ${value ? 'enabled' : 'disabled'}'))
-            );
-          },
-          activeColor: AppTheme.primaryColor,
-        ),
-      ),
-    );
-  }
-  
-  // Dummy data for chart
   LineChartData _buildTemperatureChartData() {
     return LineChartData(
       gridData: const FlGridData(show: false),
@@ -185,7 +173,7 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
           dotData: const FlDotData(show: false),
           belowBarData: BarAreaData(
             show: true,
-            color: AppTheme.secondaryColor.withOpacity(0.3),
+            color: AppTheme.primaryColor.withOpacity(0.3),
           ),
         ),
       ],
