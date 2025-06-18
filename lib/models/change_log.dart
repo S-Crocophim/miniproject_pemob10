@@ -2,7 +2,7 @@
 class ChangeLog {
   final String employeeId;
   final DateTime timestamp;
-  final String description; // Contoh: "Slot A1 diubah menjadi Occupied"
+  final String description;
 
   ChangeLog({
     required this.employeeId,

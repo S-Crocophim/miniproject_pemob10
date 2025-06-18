@@ -26,8 +26,15 @@ class ApiService {
         humidity: 85.0,
         isDoorOpen: false,
         status: RoomStatus.normal,
-        cctvUrl: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-        slots: List.generate(12, (index) => SlotStorage(id: 'A${index+1}', status: index % 3 == 0 ? SlotStatus.occupied : SlotStatus.available)),
+        cctvUrl:
+            'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+        slots: List.generate(
+          12,
+          (index) => SlotStorage(
+            id: 'A${index + 1}',
+            status: index % 3 == 0 ? SlotStatus.occupied : SlotStatus.available,
+          ),
+        ),
       ),
       ColdRoom(
         id: 'CR-002',
@@ -37,8 +44,13 @@ class ApiService {
         humidity: 40.0,
         isDoorOpen: false,
         status: RoomStatus.alert,
-        cctvUrl: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-        slots: List.generate(8, (index) => SlotStorage(id: 'B${index+1}', status: SlotStatus.occupied)),
+        cctvUrl:
+            'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+        slots: List.generate(
+          8,
+          (index) =>
+              SlotStorage(id: 'B${index + 1}', status: SlotStatus.occupied),
+        ),
       ),
     ];
   }
