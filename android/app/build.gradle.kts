@@ -8,15 +8,12 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-// Blok untuk membaca properti dari file local.properties
 val localProperties = Properties()
 val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
     localProperties.load(FileInputStream(localPropertiesFile))
 }
 
-// Ambil nilai dari properties.
-// FIX DI SINI: Gunakan nama variabel yang benar "localProperties"
 val flutterVersionCode = localProperties.getProperty("flutter.versionCode")
 val flutterVersionName = localProperties.getProperty("flutter.versionName")
 val flutterCompileSdkVersion = localProperties.getProperty("flutter.compileSdkVersion")
