@@ -1,13 +1,15 @@
-import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
+// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:provider/provider.dart';
-import '/firebase_options.dart'; 
+import '/firebase_options.dart';
 import '/providers/auth_provider.dart';
 import '/providers/cold_room_provider.dart';
+import '/providers/theme_provider.dart'; // Import
 import '/screens/dashboard_screen.dart';
 import '/screens/login_screen.dart';
-import '/utils/app_theme.dart';
+import '/utils/app_theme.dart'; // Import
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,20 +28,29 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ColdRoomProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()), // Tambahkan ThemeProvider
       ],
-      child: MaterialApp(
-        title: 'Cold Room Monitoring',
-        theme: AppTheme.theme,
-        home: StreamBuilder(
-          stream: FirebaseAuth.instance.authStateChanges(),
-          builder: (ctx, userSnapshot) {
-            if (userSnapshot.hasData) {
-              return const DashboardScreen();
-            }
-            return const LoginScreen();
-          },
-        ),
-        debugShowCheckedModeBanner: false,
+      // Gunakan Consumer untuk mendengarkan perubahan tema
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            title: 'Cold Room Monitoring',
+            // Gunakan tema dari provider
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+            home: StreamBuilder(
+              stream: FirebaseAuth.instance.authStateChanges(),
+              builder: (ctx, userSnapshot) {
+                if (userSnapshot.hasData) {
+                  return const DashboardScreen();
+                }
+                return const LoginScreen();
+              },
+            ),
+            debugShowCheckedModeBanner: false,
+          );
+        },
       ),
     );
   }

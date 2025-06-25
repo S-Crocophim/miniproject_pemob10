@@ -7,6 +7,7 @@ import '/providers/theme_provider.dart';
 import '/models/cold_room.dart';
 import '/widgets/cold_room_card.dart';
 import '/screens/add_room_screen.dart';
+import '/screens/log_history_screen.dart'; // Import layar log
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -16,12 +17,11 @@ class DashboardScreen extends StatelessWidget {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final roomProvider = Provider.of<ColdRoomProvider>(context, listen: false);
     final themeProvider = Provider.of<ThemeProvider>(context);
+    final theme = Theme.of(context);
 
     return Scaffold(
-      // Kita gunakan Stack untuk menumpuk background dan konten utama
       body: Stack(
         children: [
-          // Lapis 1: Background Gradient & Blur
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -33,30 +33,35 @@ class DashboardScreen extends StatelessWidget {
               ),
             ),
           ),
-          // Lapis 2: Konten aplikasi
           SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // AppBar Kustom
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  padding: const EdgeInsets.fromLTRB(20, 10, 8, 10), // Ubah padding kanan
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         'Dashboard',
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        style: theme.textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: themeProvider.isDarkMode ? Colors.white : Colors.black87,
                             ),
                       ),
-                      // Tombol Switch Tema
                       Row(
                         children: [
-                          Icon(
-                            themeProvider.isDarkMode ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
-                            color: themeProvider.isDarkMode ? Colors.yellow.shade700 : Colors.orange,
+                          // TOMBOL BARU UNTUK LOG HISTORY
+                          IconButton(
+                            icon: Icon(Icons.history_edu_outlined,
+                                  color: themeProvider.isDarkMode ? Colors.white70 : Colors.black54),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const LogHistoryScreen()),
+                              );
+                            },
+                            tooltip: 'Log Aktivitas',
                           ),
                           Switch(
                             value: themeProvider.isDarkMode,
@@ -65,15 +70,16 @@ class DashboardScreen extends StatelessWidget {
                             },
                           ),
                           IconButton(
-                            icon: Icon(Icons.logout, color: themeProvider.isDarkMode ? Colors.white70 : Colors.black54),
+                            icon: Icon(Icons.logout,
+                                  color: themeProvider.isDarkMode ? Colors.white70 : Colors.black54),
                             onPressed: () => authProvider.logout(),
+                            tooltip: 'Logout',
                           )
                         ],
                       )
                     ],
                   ),
                 ),
-                // Konten List
                 Expanded(
                   child: StreamBuilder<List<ColdRoom>>(
                     stream: roomProvider.getColdRooms(),
@@ -109,7 +115,7 @@ class DashboardScreen extends StatelessWidget {
         onPressed: () {
           Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AddRoomScreen()));
         },
-        backgroundColor: Theme.of(context).colorScheme.primary,
+        backgroundColor: theme.colorScheme.primary,
         child: const Icon(Icons.add, color: Colors.white),
         tooltip: 'Tambah Ruangan',
       ),
