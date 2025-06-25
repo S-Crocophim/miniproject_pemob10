@@ -1,79 +1,60 @@
-// lib/screens/dashboard_screen.dart
-import '/providers/auth_provider.dart';
-import '/providers/cold_room_provider.dart';
-import '/providers/theme_provider.dart';
-import '/utils/app_theme.dart';
-import '/widgets/cold_room_card.dart';
 import 'package:flutter/material.dart';
+import 'package:miniproject_pemob10/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
+import '/providers/cold_room_provider.dart';
+import '/models/cold_room.dart';
+import '/widgets/cold_room_card.dart';
+import '/screens/add_room_screen.dart'; // import layar baru
 
-class DashboardScreen extends StatefulWidget {
+class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
   @override
-  _DashboardScreenState createState() => _DashboardScreenState();
-}
-
-class _DashboardScreenState extends State<DashboardScreen> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ColdRoomProvider>(context, listen: false).fetchColdRooms();
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final roomProvider = Provider.of<ColdRoomProvider>(context);
-    final themeProvider = Provider.of<ThemeProvider>(context);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final roomProvider = Provider.of<ColdRoomProvider>(context, listen: false);
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text('Dashboard'),
         actions: [
           IconButton(
-            icon: Icon(
-              themeProvider.isDarkMode
-                  ? Icons.nightlight_round
-                  : Icons.wb_sunny_rounded,
-              size: 24,
-            ),
-            tooltip: 'Toggle Theme',
-            onPressed: () {
-              themeProvider.setDarkTheme(!themeProvider.isDarkMode);
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout, size: 26),
-            tooltip: 'Logout',
-            onPressed: () {
-              Provider.of<AuthProvider>(context, listen: false).logout();
-            },
+            icon: const Icon(Icons.logout),
+            onPressed: () => authProvider.logout(),
           ),
         ],
       ),
-      body: Container(
-        decoration: themeProvider.isDarkMode
-            ? AppTheme.darkBackgroundGradient
-            : AppTheme.lightBackgroundGradient,
-        child: SafeArea(
-          child: roomProvider.isLoading
-              ? const Center(child: CircularProgressIndicator(color: Colors.white))
-              : RefreshIndicator(
-                  onRefresh: () => roomProvider.fetchColdRooms(),
-                  color: Theme.of(context).colorScheme.primary,
-                  backgroundColor: Theme.of(context).colorScheme.surface,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
-                    itemCount: roomProvider.rooms.length,
-                    itemBuilder: (context, index) {
-                      return ColdRoomCard(room: roomProvider.rooms[index]);
-                    },
-                  ),
-                ),
-        ),
+      // Gunakan StreamBuilder untuk mendengarkan perubahan data Firestore secara real-time
+      body: StreamBuilder<List<ColdRoom>>(
+        stream: roomProvider.getColdRooms(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Terjadi error: ${snapshot.error}'));
+          }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('Belum ada data Cold Room.'));
+          }
+
+          final rooms = snapshot.data!;
+          return ListView.builder(
+            padding: const EdgeInsets.all(8.0),
+            itemCount: rooms.length,
+            itemBuilder: (context, index) {
+              return ColdRoomCard(room: rooms[index]);
+            },
+          );
+        },
+      ),
+      // Tombol untuk menambah data baru
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AddRoomScreen()));
+        },
+        tooltip: 'Tambah Ruangan',
+        child: const Icon(Icons.add),
       ),
     );
   }

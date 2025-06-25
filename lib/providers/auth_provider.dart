@@ -1,29 +1,51 @@
-// lib/providers/auth_provider.dart
 import 'package:flutter/material.dart';
-import 'package:miniproject_pemob10/services/api_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthProvider with ChangeNotifier {
-  final ApiService _apiService = ApiService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   bool _isLoading = false;
-  bool _isLoggedIn = false;
 
   bool get isLoading => _isLoading;
-  bool get isLoggedIn => _isLoggedIn;
 
-  Future<bool> login(String username, String password) async {
+  Future<String?> login(String email, String password) async {
     _isLoading = true;
     notifyListeners();
+    String? errorMessage;
 
-    final success = await _apiService.login(username, password);
-    _isLoggedIn = success;
+    try {
+      await _auth.signInWithEmailAndPassword(email: email, password: password);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        errorMessage = 'Pengguna dengan email ini tidak ditemukan.';
+      } else if (e.code == 'wrong-password') {
+        errorMessage = 'Password yang dimasukkan salah.';
+      } else {
+        errorMessage = 'Terjadi kesalahan: ${e.message}';
+      }
+    } catch (e) {
+      errorMessage = 'Terjadi kesalahan yang tidak diketahui.';
+    }
 
     _isLoading = false;
     notifyListeners();
-    return success;
+    return errorMessage;
   }
 
-  void logout() {
-    _isLoggedIn = false;
+  Future<String?> register(String email, String password) async {
+    _isLoading = true;
     notifyListeners();
+    String? errorMessage;
+    try {
+        await _auth.createUserWithEmailAndPassword(email: email, password: password);
+    } on FirebaseAuthException catch (e) {
+        errorMessage = 'Gagal mendaftar: ${e.message}';
+    }
+    _isLoading = false;
+    notifyListeners();
+    return errorMessage;
+  }
+  // Logout
+  Future<void> logout() async {
+    await _auth.signOut();
   }
 }

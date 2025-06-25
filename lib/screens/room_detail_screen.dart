@@ -1,16 +1,9 @@
 // lib/screens/room_detail_screen.dart
-import 'package:intl/intl.dart';
-
-import '/models/change_log.dart';
+import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '/models/cold_room.dart';
-import '/providers/theme_provider.dart';
 import '/screens/cctv_view_screen.dart';
 import '/screens/slot_management_screen.dart';
-import '/utils/app_theme.dart';
-import '/widgets/glassmorphic_container.dart';
-import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class RoomDetailScreen extends StatefulWidget {
   final ColdRoom room;
@@ -23,236 +16,170 @@ class RoomDetailScreen extends StatefulWidget {
 
 class _RoomDetailScreenState extends State<RoomDetailScreen> {
   bool _notificationsEnabled = true;
-  List<ChangeLog> _changeLogs = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _changeLogs = [
-      ChangeLog(
-        employeeId: 'EMP-112',
-        timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-        description: 'Slot A3 changed to Occupied.',
-      ),
-      ChangeLog(
-        employeeId: 'EMP-078',
-        timestamp: DateTime.now().subtract(const Duration(hours: 8)),
-        description: 'Slot B2 changed to Available.',
-      ),
-    ];
-  }
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-    final isDarkMode = themeProvider.isDarkMode;
-    final textColor = isDarkMode ? AppTheme.darkTextColor : AppTheme.lightTextColor;
+    final theme = Theme.of(context);
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(widget.room.name, style: const TextStyle(fontWeight: FontWeight.normal)),
-        backgroundColor: Colors.transparent,
+        title: Text(widget.room.name),
+        backgroundColor: theme.scaffoldBackgroundColor, // Samakan dengan background body
+        elevation: 0,
+        foregroundColor: theme.textTheme.bodyLarge?.color, // Warna ikon dan teks
       ),
-      body: Container(
-        decoration: isDarkMode ? AppTheme.darkBackgroundGradient : AppTheme.lightBackgroundGradient,
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildMetricSection(textColor),
-                const SizedBox(height: 16),
-                _buildActionButtons(context),
-                const SizedBox(height: 16),
-                _buildNotificationSwitch(isDarkMode, textColor),
-                const SizedBox(height: 24),
-                _buildChangeLogSection(textColor),
-              ],
-            ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 8),
+              _buildKeyMetrics(theme),
+              const SizedBox(height: 24),
+              _buildChartCard(theme),
+              const SizedBox(height: 24),
+              
+              // Ini bagian yang diperbaiki
+              _buildActionButtons(context), 
+
+              const SizedBox(height: 16),
+              _buildSettingsCard(theme),
+              const SizedBox(height: 24),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildMetricSection(Color textColor) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    return GlassmorphicContainer(
-      padding: const EdgeInsets.all(20),
-      margin: EdgeInsets.zero,
-      child: Column(
-        children: [
-          Text("Current Conditions", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildMetricItem('Temp', '${widget.room.temperature}°C', Icons.thermostat, isDarkMode ? AppTheme.darkWarningColor : AppTheme.lightWarningColor, textColor),
-              _buildMetricItem('Humidity', '${widget.room.humidity}%', Icons.water_drop, isDarkMode ? AppTheme.darkSecondaryColor : AppTheme.lightSecondaryColor, textColor),
-              _buildMetricItem('Door', widget.room.isDoorOpen ? 'Open' : 'Closed', Icons.door_front_door, isDarkMode ? AppTheme.darkStatusAlert : AppTheme.lightStatusAlert, textColor),
-            ],
-          ),
-          const SizedBox(height: 16),
-          const Divider(color: Colors.white24),
-          _buildChartCard(isDarkMode, textColor),
-        ],
-      ),
+  Widget _buildKeyMetrics(ThemeData theme) {
+    return Row(
+      children: [
+        _buildMetricCard('Suhu', '${widget.room.temperature}°C', Icons.thermostat_outlined, Colors.orange),
+        const SizedBox(width: 12),
+        _buildMetricCard('Kelembaban', '${widget.room.humidity}%', Icons.water_drop_outlined, Colors.blue),
+        const SizedBox(width: 12),
+        _buildMetricCard('Pintu', widget.room.isDoorOpen ? 'Terbuka' : 'Tertutup', Icons.door_front_door_outlined, Colors.grey.shade600),
+      ],
     );
   }
 
-  Widget _buildChangeLogSection(Color textColor) {
-    return GlassmorphicContainer(
-      padding: const EdgeInsets.all(20),
-      margin: EdgeInsets.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+  Widget _buildMetricCard(String label, String value, IconData icon, Color color) {
+    return Expanded(
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        color: color.withOpacity(0.15),
+        elevation: 0,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 8.0),
+          child: Column(
             children: [
-              Icon(Icons.history, color: textColor, size: 22),
-              const SizedBox(width: 8),
-              Text(
-                "Slot Change History",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
-              ),
+              Icon(icon, size: 32, color: color),
+              const SizedBox(height: 8),
+              Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 4),
+              Text(label, style: const TextStyle(color: Colors.black54)),
             ],
           ),
-          const SizedBox(height: 12),
-          if (_changeLogs.isEmpty)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                child: Text(
-                  "No recent changes.",
-                  style: TextStyle(color: textColor.withOpacity(0.7), fontStyle: FontStyle.italic),
-                ),
-              ),
-            )
-          else
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _changeLogs.length,
-              itemBuilder: (context, index) {
-                final log = _changeLogs[index];
-                return ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: CircleAvatar(
-                    backgroundColor: Theme.of(context).colorScheme.secondary.withOpacity(0.2),
-                    child: Icon(Icons.person, color: Theme.of(context).colorScheme.secondary),
-                  ),
-                  title: Text(log.description, style: TextStyle(color: textColor, fontWeight: FontWeight.w500)),
-                  subtitle: Text(
-                    "${log.employeeId} • ${DateFormat.yMMMd().add_jms().format(log.timestamp)}",
-                    style: TextStyle(color: textColor.withOpacity(0.7), fontSize: 12),
-                  ),
-                );
-              },
-              separatorBuilder: (context, index) => const Divider(color: Colors.white24, height: 1),
-            ),
-        ],
-      ),
-    );
-  }
-
-  void _navigateToSlotManagement() async {
-    final result = await Navigator.push<ChangeLog>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => SlotManagementScreen(
-          slots: widget.room.slots,
-          roomName: widget.room.name,
         ),
       ),
     );
-
-    if (result != null && mounted) {
-      setState(() {
-        _changeLogs.insert(0, result);
-      });
-    }
   }
 
+  Widget _buildChartCard(ThemeData theme) {
+    return Card(
+       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+       elevation: 0,
+       color: theme.colorScheme.primary.withOpacity(0.05),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Tren Suhu (Contoh Statis)',
+              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              height: 150,
+              child: LineChart(_buildTemperatureChartData(theme)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // FIX UTAMA ADA DI SINI
+  // Widget ini sekarang hanya berisi satu Row dengan dua tombol di dalamnya,
+  // masing-masing dibungkus Expanded.
   Widget _buildActionButtons(BuildContext context) {
     return Row(
       children: [
+        // Tombol 1: Kelola Slot
         Expanded(
-          child: ElevatedButton.icon(
-            icon: const Icon(Icons.videocam),
-            label: const Text('View CCTV'),
+          child: OutlinedButton.icon(
+            icon: const Icon(Icons.grid_on_outlined, size: 20),
+            label: const Text('Kelola Slot'),
+            onPressed: () {
+               Navigator.push(context, MaterialPageRoute(builder: (_) =>
+                SlotManagementScreen(room: widget.room), 
+              ));
+            },
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              side: BorderSide(color: Theme.of(context).dividerColor),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+        ),
+        const SizedBox(width: 16),
+        
+        // Tombol 2: Lihat CCTV
+        Expanded(
+          child: OutlinedButton.icon(
+            icon: const Icon(Icons.videocam_outlined, size: 20),
+            label: const Text('Lihat CCTV'),
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (_) =>
                 CCTVViewScreen(cctvUrl: widget.room.cctvUrl, roomName: widget.room.name),
               ));
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.secondary,
-              foregroundColor: Colors.white,
+             style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              side: BorderSide(color: Theme.of(context).dividerColor),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ),
         ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: ElevatedButton.icon(
-            icon: const Icon(Icons.grid_on),
-            label: const Text('Manage Slots'),
-            onPressed: _navigateToSlotManagement,
-          ),
-        ),
       ],
     );
   }
 
-  Widget _buildNotificationSwitch(bool isDarkMode, Color textColor) {
-    return GlassmorphicContainer(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-      margin: EdgeInsets.zero,
-      child: SwitchListTile(
-        title: Text('Enable Notifications', style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
-        subtitle: Text('Receive alerts for this room', style: TextStyle(color: textColor.withOpacity(0.7))),
-        value: _notificationsEnabled,
-        onChanged: (value) {
-          setState(() => _notificationsEnabled = value);
-        },
-        activeColor: isDarkMode ? AppTheme.darkPrimaryColor : AppTheme.lightPrimaryColor,
-        contentPadding: EdgeInsets.zero,
+  Widget _buildSettingsCard(ThemeData theme) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0,
+      color: theme.colorScheme.primary.withOpacity(0.05),
+      child: ListTile(
+        leading: Icon(Icons.notifications_active_outlined, color: theme.colorScheme.primary),
+        title: const Text('Aktifkan Notifikasi'),
+        subtitle: const Text('Terima alert untuk ruangan ini'),
+        trailing: Switch(
+          value: _notificationsEnabled,
+          onChanged: (value) {
+            setState(() {
+              _notificationsEnabled = value;
+            });
+          },
+        ),
       ),
     );
   }
-
-  Widget _buildChartCard(bool isDarkMode, Color textColor) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Temperature Trend', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textColor)),
-        const SizedBox(height: 20),
-        SizedBox(
-          height: 120,
-          child: LineChart(_buildTemperatureChartData(isDarkMode)),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMetricItem(String label, String value, IconData icon, Color color, Color textColor) {
-    return Column(
-      children: [
-        CircleAvatar(
-          radius: 28,
-          backgroundColor: color.withOpacity(0.9),
-          child: Icon(icon, size: 28, color: Colors.white),
-        ),
-        const SizedBox(height: 8),
-        Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textColor)),
-        Text(label, style: TextStyle(fontSize: 12, color: textColor.withOpacity(0.7))),
-      ],
-    );
-  }
-
-  LineChartData _buildTemperatureChartData(bool isDarkMode) {
-    final primaryColor = isDarkMode ? AppTheme.darkPrimaryColor : AppTheme.lightPrimaryColor;
+  
+  LineChartData _buildTemperatureChartData(ThemeData theme) {
     return LineChartData(
       gridData: const FlGridData(show: false),
       titlesData: const FlTitlesData(
@@ -262,10 +189,7 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
         rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
       ),
       borderData: FlBorderData(show: false),
-      minX: 0,
-      maxX: 11,
-      minY: -5,
-      maxY: 5,
+      minX: 0, maxX: 11, minY: -5, maxY: 5,
       lineBarsData: [
         LineChartBarData(
           spots: const [
@@ -274,13 +198,13 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
             FlSpot(8, 3.5), FlSpot(9, 3.2), FlSpot(10, 2.9), FlSpot(11, 3.1),
           ],
           isCurved: true,
-          color: primaryColor,
+          color: theme.colorScheme.primary,
           barWidth: 4,
           isStrokeCapRound: true,
           dotData: const FlDotData(show: false),
           belowBarData: BarAreaData(
             show: true,
-            color: primaryColor.withOpacity(0.3),
+            color: theme.colorScheme.primary.withOpacity(0.2),
           ),
         ),
       ],

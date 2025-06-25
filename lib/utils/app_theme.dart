@@ -49,6 +49,8 @@ class AppTheme {
   static const Color lightWarningColor = Color(0xFFFFA726);
   static const Color darkWarningColor = Color(0xFFFFB74D);
 
+  static var theme;
+
   static ThemeData get lightTheme {
     return ThemeData(
       brightness: Brightness.light,
