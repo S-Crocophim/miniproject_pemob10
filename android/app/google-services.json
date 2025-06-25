@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "36252113222",
+    "project_id": "cold-room-storage-79a01",
+    "storage_bucket": "cold-room-storage-79a01.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:36252113222:android:3635bea41a93e84dfa6d47",
+        "android_client_info": {
+          "package_name": "com.example.miniproject_pemob10"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCEw7kU9ZLVhH69-yYbxLYQq4LF7uPPmPI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
