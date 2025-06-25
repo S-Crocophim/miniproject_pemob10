@@ -6,8 +6,7 @@ import '/providers/cold_room_provider.dart';
 import '/providers/theme_provider.dart';
 import '/models/cold_room.dart';
 import '/widgets/cold_room_card.dart';
-import '/screens/add_room_screen.dart';
-import '/screens/log_history_screen.dart'; // Import layar log
+import '/screens/log_history_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -38,7 +37,7 @@ class DashboardScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 10, 8, 10), // Ubah padding kanan
+                  padding: const EdgeInsets.fromLTRB(20, 10, 8, 10),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -51,7 +50,6 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       Row(
                         children: [
-                          // TOMBOL BARU UNTUK LOG HISTORY
                           IconButton(
                             icon: Icon(Icons.history_edu_outlined,
                                   color: themeProvider.isDarkMode ? Colors.white70 : Colors.black54),
@@ -61,7 +59,7 @@ class DashboardScreen extends StatelessWidget {
                                 MaterialPageRoute(builder: (_) => const LogHistoryScreen()),
                               );
                             },
-                            tooltip: 'Log Aktivitas',
+                            tooltip: 'Activity Log',
                           ),
                           Switch(
                             value: themeProvider.isDarkMode,
@@ -88,12 +86,12 @@ class DashboardScreen extends StatelessWidget {
                         return const Center(child: CircularProgressIndicator());
                       }
                       if (snapshot.hasError) {
-                        return Center(child: Text('Terjadi error: ${snapshot.error}'));
+                        return Center(child: Text('An error occurred: ${snapshot.error}'));
                       }
                       if (!snapshot.hasData || snapshot.data!.isEmpty) {
                         return const Center(
-                            child: Text('Belum ada data Cold Room.'),
-                            );
+                            child: Text('No cold rooms found.\nClick the + button to add one.'),
+                        );
                       }
                       final rooms = snapshot.data!;
                       return ListView.builder(
@@ -113,11 +111,12 @@ class DashboardScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AddRoomScreen()));
+          // You might want to create and translate add_room_screen as well
+          // Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AddRoomScreen()));
         },
         backgroundColor: theme.colorScheme.primary,
         child: const Icon(Icons.add, color: Colors.white),
-        tooltip: 'Tambah Ruangan',
+        tooltip: 'Add Room',
       ),
     );
   }

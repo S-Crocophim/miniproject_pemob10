@@ -42,7 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('Masukkan email Anda untuk menerima link reset password.'),
+                const Text('Enter your email to receive a password reset link.'),
                 const SizedBox(height: 16),
                 TextField(
                   controller: resetEmailController,
@@ -52,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ],
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Batal')),
+              TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
               ElevatedButton(
                   onPressed: () async {
                     if (resetEmailController.text.trim().isEmpty) return;
@@ -60,14 +60,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     final authProvider = Provider.of<AuthProvider>(context, listen: false);
                     final message = await authProvider.resetPassword(resetEmailController.text.trim());
                     
-                    Navigator.of(ctx).pop(); // Tutup dialog
+                    Navigator.of(ctx).pop();
                     
-                    // Tampilkan pesan hasil
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(message!), backgroundColor: message.contains('berhasil') ? Colors.green : Colors.red)
+                      SnackBar(content: Text(message!), backgroundColor: message.contains('sent') ? Colors.green : Colors.red)
                     );
                   },
-                  child: const Text('Kirim Link'))
+                  child: const Text('Send Link'))
             ],
           );
         });
@@ -110,14 +109,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
-                      labelText: 'Email Karyawan',
+                      labelText: 'Employee Email',
                       border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
                       prefixIcon: Icon(Icons.email_outlined),
                       filled: true,
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty || !value.contains('@')) {
-                        return 'Masukkan email yang valid.';
+                        return 'Please enter a valid email.';
                       }
                       return null;
                     },
@@ -134,17 +133,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Password tidak boleh kosong.';
+                        return 'Password cannot be empty.';
                       }
                       return null;
                     },
                   ),
-                  // Link "Lupa Password?"
                   Container(
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: _showResetPasswordDialog,
-                      child: const Text('Lupa Password?'),
+                      child: const Text('Forgot Password?'),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -162,7 +160,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: const Text('Login', style: TextStyle(fontSize: 16)),
                       ),
                     ),
-                  // Tombol Buat Akun Baru SUDAH DIHAPUS
                 ],
               ),
             ),

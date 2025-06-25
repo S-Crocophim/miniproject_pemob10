@@ -16,14 +16,14 @@ class AuthProvider with ChangeNotifier {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found' || e.code == 'invalid-email') {
-        errorMessage = 'Email yang Anda masukkan tidak terdaftar.';
+        errorMessage = 'No user found for that email.';
       } else if (e.code == 'wrong-password') {
-        errorMessage = 'Password yang dimasukkan salah.';
+        errorMessage = 'Wrong password provided for that user.';
       } else {
-        errorMessage = 'Terjadi kesalahan: ${e.message}';
+        errorMessage = 'An error occurred: ${e.message}';
       }
     } catch (e) {
-      errorMessage = 'Terjadi kesalahan yang tidak diketahui.';
+      errorMessage = 'An unknown error occurred.';
     }
 
     _isLoading = false;
@@ -31,19 +31,18 @@ class AuthProvider with ChangeNotifier {
     return errorMessage;
   }
   
-  // FUNGSI BARU: Mengirim email reset password
   Future<String?> resetPassword(String email) async {
     _isLoading = true;
     notifyListeners();
     String? resultMessage;
     try {
       await _auth.sendPasswordResetEmail(email: email);
-      resultMessage = "Link reset password telah dikirim ke email Anda.";
+      resultMessage = "A password reset link has been sent to your email.";
     } on FirebaseAuthException catch(e) {
        if (e.code == 'user-not-found') {
-        resultMessage = 'Email tidak terdaftar.';
+        resultMessage = 'This email is not registered.';
        } else {
-        resultMessage = 'Gagal mengirim email: ${e.message}';
+        resultMessage = 'Failed to send email: ${e.message}';
        }
     }
     _isLoading = false;

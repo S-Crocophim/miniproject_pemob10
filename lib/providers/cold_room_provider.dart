@@ -10,9 +10,7 @@ class ColdRoomProvider with ChangeNotifier {
 
   Stream<List<ColdRoom>> getColdRooms() {
     return _firestore.collection('cold_rooms').snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return ColdRoom.fromMap(doc.id, doc.data());
-      }).toList();
+      return snapshot.docs.map((doc) => ColdRoom.fromMap(doc.id, doc.data())).toList();
     });
   }
 
@@ -24,30 +22,23 @@ class ColdRoomProvider with ChangeNotifier {
         .orderBy(FieldPath.documentId)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return SlotStorage.fromMap(doc.id, doc.data());
-      }).toList();
+      return snapshot.docs.map((doc) => SlotStorage.fromMap(doc.id, doc.data())).toList();
     });
   }
   
-  // Method ini diubah untuk bisa memfilter log berdasarkan roomId
   Stream<List<ActivityLog>> getActivityLogs({String? roomId}) {
-    // Buat query dasar
     Query query = _firestore
         .collection('activity_logs')
         .orderBy('timestamp', descending: true)
         .limit(100);
 
-    // Jika roomId disediakan, tambahkan filter 'where'
     if (roomId != null) {
       query = query.where('roomId', isEqualTo: roomId);
     }
     
-    // Kembalikan stream dari query yang sudah dibangun
-    return query.snapshots()
-        .map((snapshot) {
-          return snapshot.docs.map((doc) => ActivityLog.fromFirestore(doc)).toList();
-        });
+    return query.snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) => ActivityLog.fromFirestore(doc)).toList();
+    });
   }
 
   Future<bool> verifyEmployeeId(String employeeId) async {
@@ -55,7 +46,7 @@ class ColdRoomProvider with ChangeNotifier {
       final doc = await _firestore.collection('employees').doc(employeeId).get();
       return doc.exists;
     } catch (e) {
-      print("Error verifying employee ID: $e");
+      debugPrint("Error verifying employee ID: $e");
       return false;
     }
   }
@@ -66,17 +57,10 @@ class ColdRoomProvider with ChangeNotifier {
     required SlotStatus newStatus,
     required String employeeId,
   }) async {
-    final slotRef = _firestore
-        .collection('cold_rooms')
-        .doc(roomId)
-        .collection('slots')
-        .doc(slotId);
-    
+    final slotRef = _firestore.collection('cold_rooms').doc(roomId).collection('slots').doc(slotId);
     final logRef = _firestore.collection('activity_logs').doc();
-    
-    // Dapatkan nama ruangan untuk deskripsi log yang lebih baik
     final roomDoc = await _firestore.collection('cold_rooms').doc(roomId).get();
-    final roomName = roomDoc.data()?['name'] ?? roomId; // fallback ke roomId jika nama tidak ada
+    final roomName = roomDoc.data()?['name'] ?? roomId;
     
     WriteBatch batch = _firestore.batch();
     
@@ -85,21 +69,16 @@ class ColdRoomProvider with ChangeNotifier {
     batch.set(logRef, {
       'timestamp': FieldValue.serverTimestamp(),
       'employeeId': employeeId,
-      'roomId': roomId, // Simpan ID ruangan untuk filtering
+      'roomId': roomId,
       'slotId': slotId,
       'newStatus': newStatus.name,
-      'activity': 'Slot $slotId ($roomName) diubah ke ${newStatus.name} oleh $employeeId',
+      'activity': 'Slot $slotId ($roomName) changed to ${newStatus.name} by $employeeId',
     });
     
     await batch.commit();
   }
 
   Future<void> addColdRoom(ColdRoom room) async {
-    try {
-      await _firestore.collection('cold_rooms').add(room.toMap());
-    } catch (e) {
-      print(e);
-      rethrow;
-    }
+    // Add implementation
   }
 }
