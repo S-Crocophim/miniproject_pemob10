@@ -30,13 +30,21 @@ class ColdRoomProvider with ChangeNotifier {
     });
   }
   
-  // Method BARU: Mengambil semua log aktivitas, diurutkan dari yang terbaru
-  Stream<List<ActivityLog>> getActivityLogs() {
-    return _firestore
+  // Method ini diubah untuk bisa memfilter log berdasarkan roomId
+  Stream<List<ActivityLog>> getActivityLogs({String? roomId}) {
+    // Buat query dasar
+    Query query = _firestore
         .collection('activity_logs')
         .orderBy('timestamp', descending: true)
-        .limit(100) // Batasi hingga 100 log terbaru untuk efisiensi
-        .snapshots()
+        .limit(100);
+
+    // Jika roomId disediakan, tambahkan filter 'where'
+    if (roomId != null) {
+      query = query.where('roomId', isEqualTo: roomId);
+    }
+    
+    // Kembalikan stream dari query yang sudah dibangun
+    return query.snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) => ActivityLog.fromFirestore(doc)).toList();
         });
@@ -66,6 +74,10 @@ class ColdRoomProvider with ChangeNotifier {
     
     final logRef = _firestore.collection('activity_logs').doc();
     
+    // Dapatkan nama ruangan untuk deskripsi log yang lebih baik
+    final roomDoc = await _firestore.collection('cold_rooms').doc(roomId).get();
+    final roomName = roomDoc.data()?['name'] ?? roomId; // fallback ke roomId jika nama tidak ada
+    
     WriteBatch batch = _firestore.batch();
     
     batch.update(slotRef, {'status': newStatus.name});
@@ -73,10 +85,10 @@ class ColdRoomProvider with ChangeNotifier {
     batch.set(logRef, {
       'timestamp': FieldValue.serverTimestamp(),
       'employeeId': employeeId,
-      'roomId': roomId,
+      'roomId': roomId, // Simpan ID ruangan untuk filtering
       'slotId': slotId,
       'newStatus': newStatus.name,
-      'activity': 'Slot $slotId ($roomId) diubah ke ${newStatus.name} oleh $employeeId',
+      'activity': 'Slot $slotId ($roomName) diubah ke ${newStatus.name} oleh $employeeId',
     });
     
     await batch.commit();

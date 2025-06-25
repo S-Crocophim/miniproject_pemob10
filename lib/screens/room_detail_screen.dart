@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '/models/cold_room.dart';
 import '/screens/cctv_view_screen.dart';
+import '/screens/log_history_screen.dart'; // Import layar Log
 import '/screens/slot_management_screen.dart';
+import '/widgets/glass_card.dart'; // Import untuk desain modern
 
 class RoomDetailScreen extends StatefulWidget {
   final ColdRoom room;
@@ -22,64 +24,78 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
+      extendBodyBehindAppBar: true, // Membuat body bisa berada di belakang AppBar
       appBar: AppBar(
         title: Text(widget.room.name),
-        backgroundColor: theme.scaffoldBackgroundColor, // Samakan dengan background body
+        backgroundColor: Colors.transparent, // AppBar transparan
         elevation: 0,
-        foregroundColor: theme.textTheme.bodyLarge?.color, // Warna ikon dan teks
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 8),
-              _buildKeyMetrics(theme),
-              const SizedBox(height: 24),
-              _buildChartCard(theme),
-              const SizedBox(height: 24),
-              
-              // Ini bagian yang diperbaiki
-              _buildActionButtons(context), 
-
-              const SizedBox(height: 16),
-              _buildSettingsCard(theme),
-              const SizedBox(height: 24),
-            ],
+      body: Stack( // Gunakan Stack untuk background
+        children: [
+          Container(
+             decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: theme.brightness == Brightness.dark
+                    ? [const Color(0xFF1E2A72), const Color(0xFF28338C)]
+                    : [const Color(0xFFC2E9FB), const Color(0xFFa1c4fd)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
           ),
-        ),
+          SafeArea(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 16),
+                    _buildKeyMetrics(),
+                    const SizedBox(height: 24),
+                    _buildChartCard(),
+                    const SizedBox(height: 24),
+                    _buildActionButtons(context),
+                    const SizedBox(height: 16),
+                    _buildSettingsCard(),
+                    // TOMBOL LOG HISTORY DITAMBAHKAN DI SINI
+                    const SizedBox(height: 16),
+                    _buildLogHistoryButton(context),
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildKeyMetrics(ThemeData theme) {
+  Widget _buildKeyMetrics() {
     return Row(
       children: [
-        _buildMetricCard('Suhu', '${widget.room.temperature}°C', Icons.thermostat_outlined, Colors.orange),
+        _buildMetricCard('Suhu', '${widget.room.temperature}°C', Icons.thermostat_outlined),
         const SizedBox(width: 12),
-        _buildMetricCard('Kelembaban', '${widget.room.humidity}%', Icons.water_drop_outlined, Colors.blue),
+        _buildMetricCard('Kelembaban', '${widget.room.humidity}%', Icons.water_drop_outlined),
         const SizedBox(width: 12),
-        _buildMetricCard('Pintu', widget.room.isDoorOpen ? 'Terbuka' : 'Tertutup', Icons.door_front_door_outlined, Colors.grey.shade600),
+        _buildMetricCard('Pintu', widget.room.isDoorOpen ? 'Terbuka' : 'Tertutup', Icons.door_front_door_outlined),
       ],
     );
   }
 
-  Widget _buildMetricCard(String label, String value, IconData icon, Color color) {
+  Widget _buildMetricCard(String label, String value, IconData icon) {
     return Expanded(
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: color.withOpacity(0.15),
-        elevation: 0,
+      child: GlassmorphicCard(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 8.0),
           child: Column(
             children: [
-              Icon(icon, size: 32, color: color),
+              Icon(icon, size: 32),
               const SizedBox(height: 8),
               Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
-              Text(label, style: const TextStyle(color: Colors.black54)),
+              Text(label),
             ],
           ),
         ),
@@ -87,24 +103,21 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
     );
   }
 
-  Widget _buildChartCard(ThemeData theme) {
-    return Card(
-       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-       elevation: 0,
-       color: theme.colorScheme.primary.withOpacity(0.05),
+  Widget _buildChartCard() {
+    return GlassmorphicCard(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Tren Suhu (Contoh Statis)',
-              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(height: 20),
             SizedBox(
               height: 150,
-              child: LineChart(_buildTemperatureChartData(theme)),
+              child: LineChart(_buildTemperatureChartData(Theme.of(context))),
             ),
           ],
         ),
@@ -112,13 +125,9 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
     );
   }
 
-  // FIX UTAMA ADA DI SINI
-  // Widget ini sekarang hanya berisi satu Row dengan dua tombol di dalamnya,
-  // masing-masing dibungkus Expanded.
   Widget _buildActionButtons(BuildContext context) {
     return Row(
       children: [
-        // Tombol 1: Kelola Slot
         Expanded(
           child: OutlinedButton.icon(
             icon: const Icon(Icons.grid_on_outlined, size: 20),
@@ -129,15 +138,14 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
               ));
             },
             style: OutlinedButton.styleFrom(
+              foregroundColor: Theme.of(context).textTheme.bodyLarge?.color,
               padding: const EdgeInsets.symmetric(vertical: 14),
-              side: BorderSide(color: Theme.of(context).dividerColor),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              side: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.3)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             ),
           ),
         ),
         const SizedBox(width: 16),
-        
-        // Tombol 2: Lihat CCTV
         Expanded(
           child: OutlinedButton.icon(
             icon: const Icon(Icons.videocam_outlined, size: 20),
@@ -148,9 +156,10 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
               ));
             },
              style: OutlinedButton.styleFrom(
+              foregroundColor: Theme.of(context).textTheme.bodyLarge?.color,
               padding: const EdgeInsets.symmetric(vertical: 14),
-              side: BorderSide(color: Theme.of(context).dividerColor),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              side: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.3)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             ),
           ),
         ),
@@ -158,13 +167,10 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
     );
   }
 
-  Widget _buildSettingsCard(ThemeData theme) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 0,
-      color: theme.colorScheme.primary.withOpacity(0.05),
+  Widget _buildSettingsCard() {
+    return GlassmorphicCard(
       child: ListTile(
-        leading: Icon(Icons.notifications_active_outlined, color: theme.colorScheme.primary),
+        leading: Icon(Icons.notifications_active_outlined, color: Theme.of(context).colorScheme.primary),
         title: const Text('Aktifkan Notifikasi'),
         subtitle: const Text('Terima alert untuk ruangan ini'),
         trailing: Switch(
@@ -175,6 +181,26 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
             });
           },
         ),
+      ),
+    );
+  }
+  
+  // WIDGET BARU UNTUK TOMBOL LOG HISTORY
+  Widget _buildLogHistoryButton(BuildContext context) {
+    return GlassmorphicCard(
+      child: ListTile(
+        onTap: () {
+          // Navigasi ke LogHistoryScreen dengan membawa ID dan Nama ruangan
+          Navigator.push(context, MaterialPageRoute(builder: (_) => 
+            LogHistoryScreen(
+              roomId: widget.room.id,
+              roomName: widget.room.name
+            ),
+          ));
+        },
+        leading: Icon(Icons.history_edu_outlined, color: Theme.of(context).colorScheme.primary),
+        title: const Text('Lihat Log Aktivitas Ruangan'),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
       ),
     );
   }

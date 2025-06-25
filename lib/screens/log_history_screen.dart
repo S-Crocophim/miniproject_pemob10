@@ -7,12 +7,14 @@ import '/providers/cold_room_provider.dart';
 import '/widgets/glass_card.dart';
 
 class LogHistoryScreen extends StatelessWidget {
-  const LogHistoryScreen({super.key});
+  // Terima roomId sebagai parameter opsional
+  final String? roomId;
+  final String? roomName;
 
-  // Helper untuk memformat timestamp
+  const LogHistoryScreen({super.key, this.roomId, this.roomName});
+
   String _formatTimestamp(DateTime? dt) {
     if (dt == null) return "No date";
-    // Format: 24 Okt 2023, 14:30
     return DateFormat('d MMM yyyy, HH:mm').format(dt);
   }
 
@@ -22,11 +24,11 @@ class LogHistoryScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Log Aktivitas'),
+        // Judul dinamis berdasarkan apakah kita memfilter atau tidak
+        title: Text(roomName != null ? 'Log: $roomName' : 'Semua Log Aktivitas'),
       ),
       body: Stack(
         children: [
-           // Background yang konsisten
            Container(
              decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -38,9 +40,9 @@ class LogHistoryScreen extends StatelessWidget {
               ),
             ),
           ),
-          // StreamBuilder untuk menampilkan log
           StreamBuilder<List<ActivityLog>>(
-            stream: provider.getActivityLogs(),
+            // Panggil method dengan atau tanpa roomId
+            stream: provider.getActivityLogs(roomId: roomId),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -49,7 +51,7 @@ class LogHistoryScreen extends StatelessWidget {
                 return Center(child: Text('Error: ${snapshot.error}'));
               }
               if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text('Belum ada aktivitas tercatat.'));
+                return const Center(child: Text('Belum ada aktivitas tercatat untuk filter ini.'));
               }
 
               final logs = snapshot.data!;
@@ -58,7 +60,6 @@ class LogHistoryScreen extends StatelessWidget {
                 itemCount: logs.length,
                 itemBuilder: (context, index) {
                   final log = logs[index];
-                  // Tampilan untuk setiap entri log
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12.0),
                     child: GlassmorphicCard(
@@ -78,7 +79,7 @@ class LogHistoryScreen extends StatelessWidget {
                         subtitle: Padding(
                           padding: const EdgeInsets.only(top: 4.0),
                           child: Text(
-                            _formatTimestamp(log.timestamp.toDate()), // Ubah Timestamp ke DateTime
+                            _formatTimestamp(log.timestamp.toDate()),
                             style: TextStyle(
                               fontSize: 12,
                               color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.7),
