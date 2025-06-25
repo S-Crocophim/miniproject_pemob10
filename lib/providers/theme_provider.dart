@@ -24,4 +24,6 @@ class ThemeProvider with ChangeNotifier {
     _darkTheme = prefs.getBool(THEME_STATUS) ?? false; // Default to light mode
     notifyListeners();
   }
+
+  void toggleTheme() {}
 }
