@@ -22,11 +22,9 @@ val flutterMinSdkVersion = localProperties.getProperty("flutter.minSdkVersion")
 
 
 android {
-    namespace = "com.example.miniproject_pemob10" // Sesuaikan dengan namespace proyek Anda
+    namespace = "com.example.miniproject_pemob10"
 
-    if (flutterCompileSdkVersion != null) {
-        compileSdk = flutterCompileSdkVersion.toInt()
-    }
+    compileSdk = flutterCompileSdkVersion?.toInt() ?: 34
     
     ndkVersion = "27.0.12077973"
 
@@ -46,13 +44,11 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.miniproject_pemob10" // Sesuaikan
+        applicationId = "com.example.miniproject_pemob10"
         
         minSdkVersion(flutterMinSdkVersion?.toInt() ?: 23)
         
-        if (flutterTargetSdkVersion != null) {
-            targetSdk = flutterTargetSdkVersion.toInt()
-        }
+            targetSdk = flutterTargetSdkVersion?.toInt() ?:34
         
         versionCode = flutterVersionCode?.toInt() ?: 1
         versionName = flutterVersionName ?: "1.0"
